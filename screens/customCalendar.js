@@ -17,9 +17,18 @@ const CustomCalendar = () => {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [showCalendar, setShowCalendar] = useState(false);
   const timetableRef = useRef(null);
-  // const screenWidth = Dimensions.get('screen').width * 0.8;
-  const screenWidth = Dimensions.get('screen').width;
+  const currentDate = new Date();
+  const screenWidth = Dimensions.get('screen').width * 0.8;
+  // const screenWidth = Dimensions.get('screen').width;
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // const previewCount = 1;
+  // const itemWidth = Dimensions.get('screen').width / (previewCount + 0.5);
+  // const startScroll = (itemWidth * 3) / 4;
+
+  // const snapToOffsets = timetableData.map((x, i) => {
+  //   return i * itemWidth + startScroll;
+  // });
 
   const timetableData = [
     {
@@ -104,51 +113,6 @@ const CustomCalendar = () => {
 
   const daysInWeek = 7;
 
-  const renderDay = ({item, index}) => (
-    <TouchableOpacity
-      disabled={daysOfWeek[item.getDay()] === 'Sun' ? true : false}
-      style={{
-        ...styles.dayContainer,
-        backgroundColor:
-          daysOfWeek[item.getDay()] === 'Sun'
-            ? '#FFB6C1'
-            : selectedDayIndex === index
-            ? 'blue'
-            : 'lightgrey',
-      }}
-      onPress={() => onDayPress(index)}>
-      <Text
-        style={{
-          fontSize: 18,
-          color: selectedDayIndex === index ? 'white' : 'black',
-        }}>
-        {daysOfWeek[item.getDay()]}
-      </Text>
-      <View
-        style={{
-          height: Dimensions.get('screen').width * 0.05,
-          width: Dimensions.get('screen').width * 0.05,
-          borderRadius: Dimensions.get('screen').width * 0.025,
-          backgroundColor:
-            selectedDayIndex === index
-              ? 'white'
-              : daysOfWeek[item.getDay()] === 'Sun'
-              ? '#FFB6C1'
-              : 'lightgrey',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-        <Text
-          style={{
-            fontSize: 14,
-            color: selectedDayIndex === index ? 'blue' : 'black',
-          }}>
-          {item.getDate()}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
-
   const generateWeekDates = () => {
     const weekDates = [];
     const currentDay = selectedDate.getDay();
@@ -161,6 +125,75 @@ const CustomCalendar = () => {
     }
     return weekDates;
   };
+
+  const current_date = generateWeekDates().filter(str =>
+    str.toISOString().includes(currentDate.toISOString().split('T')[0]),
+  );
+
+  const renderDay = ({item, index}) => (
+    <View
+      style={{
+        alignItems: 'center',
+        paddingBottom: 3,
+        height: Dimensions.get('screen').height * 0.1,
+        justifyContent: 'space-between',
+      }}>
+      <TouchableOpacity
+        disabled={daysOfWeek[item.getDay()] === 'Sun' ? true : false}
+        style={{
+          ...styles.dayContainer,
+          backgroundColor:
+            daysOfWeek[item.getDay()] === 'Sun'
+              ? '#FFB6C1'
+              : selectedDayIndex === index
+              ? 'blue'
+              : 'lightgrey',
+        }}
+        onPress={() => onDayPress(index)}>
+        <Text
+          style={{
+            fontSize: 18,
+            color: selectedDayIndex === index ? 'white' : 'black',
+          }}>
+          {daysOfWeek[item.getDay()]}
+        </Text>
+        <View
+          style={{
+            height: Dimensions.get('screen').width * 0.05,
+            width: Dimensions.get('screen').width * 0.05,
+            borderRadius: Dimensions.get('screen').width * 0.025,
+            backgroundColor:
+              selectedDayIndex === index
+                ? 'white'
+                : daysOfWeek[item.getDay()] === 'Sun'
+                ? '#FFB6C1'
+                : 'lightgrey',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <Text
+            style={{
+              fontSize: 14,
+              color: selectedDayIndex === index ? 'blue' : 'black',
+            }}>
+            {item.getDate()}
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <View
+        style={{
+          height: 5,
+          width: 5,
+          borderRadius: 2.5,
+          backgroundColor:
+            current_date.length !== 0 &&
+            item.toDateString() === current_date[0].toDateString()
+              ? 'green'
+              : 'white',
+        }}
+      />
+    </View>
+  );
 
   const handleHeadingPress = () => {
     setShowCalendar(true);
@@ -179,7 +212,11 @@ const CustomCalendar = () => {
   };
 
   const onDayPress = index => {
-    timetableRef.current.scrollToIndex({index, animated: false});
+    timetableRef.current.scrollToIndex({
+      index,
+      animated: false,
+      viewPosition: 0.5,
+    });
     setSelectedDayIndex(index);
   };
 
@@ -289,7 +326,7 @@ const CustomCalendar = () => {
             onPress={handleHeadingPress}>
             <Text style={styles.headingText}>
               {moment(generateWeekDates()[0]).format('Do MMM')} -{' '}
-              {moment(generateWeekDates()[daysInWeek - 2]).format('Do MMM')}
+              {moment(generateWeekDates()[daysInWeek - 1]).format('Do MMM')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -313,7 +350,7 @@ const CustomCalendar = () => {
           pagingEnabled
           // onMomentumScrollEnd={event => {
           // scrollToItem={event => {
-            onScroll={event => {
+          onScroll={event => {
             const index = Math.floor(
               event.nativeEvent.contentOffset.x /
                 event.nativeEvent.layoutMeasurement.width,
@@ -323,7 +360,7 @@ const CustomCalendar = () => {
         />
         <FlatList
           data={timetableData}
-          pagingEnabled
+          pagingEnabled={true}
           keyExtractor={item => item.day}
           renderItem={renderTimetableItem}
           showsHorizontalScrollIndicator={false}
@@ -335,12 +372,15 @@ const CustomCalendar = () => {
             setSelectedDayIndex(index);
           }}
           initialScrollIndex={selectedDayIndex}
+          alignItems={'center'}
           // snapToInterval={
           //   selectedDayIndex === 0
           //     ? Dimensions.get('screen').width * 0.78
           //     : Dimensions.get('screen').width * 0.9
           // }
+          // snapToOffsets={snapToOffsets}
           decelerationRate="fast"
+          snapToAlignment={'center'}
         />
         <Modal visible={showCalendar} transparent animationType="slide">
           <View style={styles.modalShadowContainer}>
@@ -349,7 +389,7 @@ const CustomCalendar = () => {
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={handleCloseCalendar}>
-                <Text style={styles.closeButtonText}>Close Calendar</Text>
+                <Text style={styles.closeButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -383,9 +423,10 @@ const styles = StyleSheet.create({
     width: 40,
   },
   timetableClass: {
-    width: Dimensions.get('screen').width*.9,
+    width: Dimensions.get('screen').width * 0.7,
+    // width: Dimensions.get('screen').width*.9,
     height: Dimensions.get('screen').height * 0.7,
-    margin: Dimensions.get('screen').width*.05,
+    margin: Dimensions.get('screen').width * 0.05,
     borderRadius: 8,
   },
   dayContainer: {
