@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -229,7 +229,7 @@ const CustomCalendar = () => {
     return color;
   };
 
-  const renderTimetableItem = ({item}) => (
+  const renderTimetableItem = useCallback(({item}) => (
     <View style={styles.timetableClass}>
       {item.sub.map((item, idx) => {
         return (
@@ -296,7 +296,7 @@ const CustomCalendar = () => {
         );
       })}
     </View>
-  );
+  ),[])
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -350,13 +350,13 @@ const CustomCalendar = () => {
           pagingEnabled
           // onMomentumScrollEnd={event => {
           // scrollToItem={event => {
-          onScroll={event => {
-            const index = Math.floor(
-              event.nativeEvent.contentOffset.x /
-                event.nativeEvent.layoutMeasurement.width,
-            );
-            setSelectedDate(generateWeekDates()[index]);
-          }}
+          // onScroll={event => {
+          //   const index = Math.floor(
+          //     event.nativeEvent.contentOffset.x /
+          //       event.nativeEvent.layoutMeasurement.width,
+          //   );
+          //   setSelectedDate(generateWeekDates()[index]);
+          // }}
         />
         <FlatList
           data={timetableData}
@@ -373,14 +373,11 @@ const CustomCalendar = () => {
           }}
           initialScrollIndex={selectedDayIndex}
           alignItems={'center'}
-          // snapToInterval={
-          //   selectedDayIndex === 0
-          //     ? Dimensions.get('screen').width * 0.78
-          //     : Dimensions.get('screen').width * 0.9
-          // }
           // snapToOffsets={snapToOffsets}
           decelerationRate="fast"
           snapToAlignment={'center'}
+          snapToInterval={Dimensions.get('screen').width*.8}
+          // scrolleventthrottle={2}
         />
         <Modal visible={showCalendar} transparent animationType="slide">
           <View style={styles.modalShadowContainer}>
